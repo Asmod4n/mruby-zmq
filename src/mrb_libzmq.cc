@@ -106,6 +106,7 @@ mrb_zmq_curve_keypair(mrb_state *mrb, mrb_value self)
   }
 
   mrb_value keypair = mrb_hash_new_capa(mrb, 2);
+  mrb_gc_protect(mrb, keypair);
   mrb_hash_set(mrb, keypair, mrb_symbol_value(MRB_SYM(public_key)), public_key);
   mrb_hash_set(mrb, keypair, mrb_symbol_value(MRB_SYM(secret_key)), secret_key);
 
@@ -183,6 +184,7 @@ mrb_zmq_getsockopt(mrb_state *mrb, mrb_value self)
   }
   else if (option_class == mrb->string_class) {
     mrb_value buf = mrb_str_new(mrb, NULL, string_return_len);
+    mrb_gc_protect(mrb, buf);
     option_len = RSTRING_CAPA(buf);
     rc = zmq_getsockopt(socket, option_name, RSTRING_PTR(buf), &option_len);
     if (unlikely(-1 == rc)) {
@@ -577,6 +579,7 @@ mrb_zmq_socket_recv(mrb_state *mrb, mrb_value self)
     if (more) {
       if (!mrb_array_p(data)) {
         data = mrb_ary_new_capa(mrb, 2); // We have at least two zmq messages at this point.
+        mrb_gc_protect(mrb, data);
       }
       mrb_ary_push(mrb, data, msg_val);
     } else {
@@ -611,6 +614,7 @@ mrb_zmq_z85_decode(mrb_state *mrb, mrb_value self)
   mrb_int out_size = groups * 4;
 
   mrb_value dest = mrb_str_new(mrb, NULL, out_size);
+  mrb_gc_protect(mrb, dest);
 
 
   uint8_t *rc = zmq_z85_decode((uint8_t *) RSTRING_PTR(dest), string);
@@ -642,6 +646,7 @@ mrb_zmq_z85_encode(mrb_state *mrb, mrb_value self)
   mrb_int out_size = groups * 5;
 
   mrb_value dest = mrb_str_new(mrb, NULL, out_size);
+  mrb_gc_protect(mrb, dest);
 
   char *rc = zmq_z85_encode(RSTRING_PTR(dest), (uint8_t*)data, size);
   if (unlikely(!rc)) {
@@ -1016,6 +1021,7 @@ mrb_network_interfaces(mrb_state *mrb, mrb_value self)
   }
 
   mrb_value interfaces_ary = mrb_ary_new(mrb);
+  mrb_gc_protect(mrb, interfaces_ary);
   int ai = mrb_gc_arena_save(mrb);
   struct ifaddrs *interfaces = NULL;
 
